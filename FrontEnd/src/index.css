@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth dark-mode transitions on the body so the toggle doesn't flash. */
+html, body {
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.dark body {
+  @apply bg-surface-dark text-text-inverted;
+}
+
+/* ─── Global dark-mode baseline ───────────────────────────────────────────
+   Every input, textarea and select that doesn't carry an explicit dark:
+   class gets a readable dark background and white text automatically.
+   This fixes the "white text on white background" issue in forms.
+   Specificity is kept low so component-level classes can still override.
+──────────────────────────────────────────────────────────────────────────── */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: #1e293b; /* slate-800 */
+  color: #f1f5f9;            /* slate-100 */
+  border-color: #334155;     /* slate-700 */
+}
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"])::placeholder,
+.dark textarea::placeholder {
+  color: #64748b; /* slate-500 */
+}
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #3b82f6;     /* blue-500 */
+  outline: none;
+}
+
+/* Card surfaces — any element that carries only bg-white or bg-gray-50/100
+   without a dark: counterpart becomes bg-gray-800 in dark mode.
+   Applied through a data attribute so it's opt-in and doesn't stomp on
+   intentionally white overlays (modals, dropdowns). */
+.dark [data-card],
+.dark .card-surface {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}

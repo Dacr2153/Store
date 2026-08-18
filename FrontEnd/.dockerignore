@@ -1,0 +1,18 @@
+# Never send node_modules to Docker build context — npm ci installs fresh ones
+node_modules/
+
+# Don't send existing build output — the Dockerfile builds it fresh
+dist/
+dist-ssr/
+
+# Env files with secrets
+.env.local
+.env.*.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git/

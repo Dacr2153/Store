@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinalStore</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Service-worker safety net. Older versions of this app registered a
+         /kill-sw.js worker whose activate handler called clients.navigate(),
+         producing an infinite reload loop in real browsers (the page would
+         appear blank because it never finished loading). We now:
+           - never register any service worker in dev,
+           - silently unregister any pre-existing service worker on this
+             origin and drop its caches (fire-and-forget; this never blocks
+             React from mounting, and never reloads the page).
+         The /kill-sw.js file has been removed from /public so it 404s if a
+         legacy SW tries to update. -->
+    <script>
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        try {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            (regs || []).forEach(function (r) {
+              try { r.unregister(); } catch (e) {}
+            });
+          }).catch(function () {});
+          if ('caches' in window) {
+            caches.keys().then(function (ks) {
+              ks.forEach(function (k) {
+                try { caches.delete(k); } catch (e) {}
+              });
+            }).catch(function () {});
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

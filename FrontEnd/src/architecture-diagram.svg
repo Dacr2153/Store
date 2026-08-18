@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="700" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="900" height="700" fill="#f9fafb" />
+  
+  <!-- Title -->
+  <text x="450" y="40" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">React Front-End Architecture</text>
+
+  <!-- Main Application Container -->
+  <rect x="150" y="70" width="600" height="580" rx="10" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/>
+  
+  <!-- Context Layer -->
+  <rect x="200" y="100" width="500" height="80" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2"/>
+  <text x="450" y="130" font-family="Arial" font-size="18" fill="white" text-anchor="middle">Application State Management</text>
+  <text x="450" y="160" font-family="Arial" font-size="14" fill="white" text-anchor="middle">Context Providers (Auth, Cart)</text>
+  
+  <!-- Routing Layer -->
+  <rect x="200" y="200" width="500" height="70" rx="8" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+  <text x="450" y="235" font-family="Arial" font-size="18" fill="white" text-anchor="middle">Routing System</text>
+  <text x="450" y="255" font-family="Arial" font-size="14" fill="white" text-anchor="middle">React Router</text>
+  
+  <!-- Component Layers -->
+  <rect x="200" y="290" width="500" height="280" rx="8" fill="#f0f9ff" stroke="#bae6fd" stroke-width="2"/>
+  
+  <!-- Layout Components -->
+  <rect x="230" y="310" width="440" height="60" rx="5" fill="#0ea5e9" stroke="#0284c7" stroke-width="2"/>
+  <text x="450" y="345" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Layout Components</text>
+  
+  <!-- Feature Components -->
+  <rect x="230" y="390" width="210" height="160" rx="5" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+  <text x="335" y="420" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Page Components</text>
+  <text x="335" y="445" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- Authentication Pages</text>
+  <text x="335" y="470" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- E-Commerce Pages</text>
+  <text x="335" y="495" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- User Account Pages</text>
+  <text x="335" y="520" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- Admin Features</text>
+  
+  <!-- Shared Components -->
+  <rect x="460" y="390" width="210" height="160" rx="5" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  <text x="565" y="420" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Shared Components</text>
+  <text x="565" y="445" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- UI Components</text>
+  <text x="565" y="470" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- Form Components</text>
+  <text x="565" y="495" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- Product Components</text>
+  <text x="565" y="520" font-family="Arial" font-size="12" fill="white" text-anchor="middle">- Cart Components</text>
+  
+  <!-- Services Layer -->
+  <rect x="200" y="590" width="500" height="40" rx="8" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <text x="450" y="615" font-family="Arial" font-size="16" fill="white" text-anchor="middle">API Services / Data Fetching</text>
+  
+  <!-- Data Flow Arrows -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+  </defs>
+  
+  <!-- Context to Routing Flow -->
+  <line x1="450" y1="180" x2="450" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Routing to Components Flow -->
+  <line x1="450" y1="270" x2="450" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Components to Services Flow -->
+  <line x1="450" y1="570" x2="450" y2="590" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Services to State Management Flow -->
+  <path d="M 200 610 Q 100 610 100 350 Q 100 130 200 130" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Legend -->
+  <rect x="700" y="580" width="20" height="15" fill="#8b5cf6" stroke="#6d28d9" stroke-width="1"/>
+  <text x="725" y="593" font-family="Arial" font-size="12" text-anchor="start">State Management</text>
+  
+  <rect x="700" y="605" width="20" height="15" fill="#3b82f6" stroke="#1e40af" stroke-width="1"/>
+  <text x="725" y="618" font-family="Arial" font-size="12" text-anchor="start">Routing</text>
+  
+  <rect x="700" y="630" width="20" height="15" fill="#0ea5e9" stroke="#0284c7" stroke-width="1"/>
+  <text x="725" y="643" font-family="Arial" font-size="12" text-anchor="start">Layout</text>
+  
+  <rect x="700" y="655" width="20" height="15" fill="#ef4444" stroke="#b91c1c" stroke-width="1"/>
+  <text x="725" y="668" font-family="Arial" font-size="12" text-anchor="start">Page Components</text>
+  
+  <rect x="700" y="680" width="20" height="15" fill="#10b981" stroke="#059669" stroke-width="1"/>
+  <text x="725" y="693" font-family="Arial" font-size="12" text-anchor="start">Shared Components</text>
+</svg>
