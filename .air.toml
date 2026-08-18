@@ -1,0 +1,14 @@
+# .air.toml
+[build]
+  # Agregamos -buildvcs=false para evitar el error de VCS stamping
+  cmd = "go build -buildvcs=false -o /app/main"
+  bin = "main"
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_dir = ["tmp", "vendor", "node_modules"]
+
+[log]
+  time = true
+
+[watch]
+  include = ["."]
+  exclude = ["tmp", "vendor", "node_modules"]

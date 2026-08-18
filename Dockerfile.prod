@@ -1,0 +1,27 @@
+# Production Dockerfile (multi-stage). Build the Go server statically and
+# ship a tiny image. Migrations are applied on startup by the binary itself.
+FROM golang:1.25-alpine AS build
+# gcc + musl-dev are required for CGO (chai2010/webp bundles C sources for WebP encoding)
+RUN apk add --no-cache git ca-certificates gcc musl-dev && update-ca-certificates
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=1 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/store .
+
+FROM alpine:3.21 AS runtime
+RUN apk add --no-cache ca-certificates tzdata
+WORKDIR /app
+# Create a non-root user that owns the uploads directory
+RUN addgroup -S app && adduser -S app -G app
+COPY --from=build /out/store /app/store
+COPY migrations /app/migrations
+COPY api /app/api
+# Bake the default product image into the image so it's available on first run.
+# New uploads go into a named Docker volume mounted at /app/uploads.
+COPY uploads/default /app/uploads/default
+RUN chown -R app:app /app
+EXPOSE 5050
+ENV PORT=:5050
+USER app
+ENTRYPOINT ["/app/store"]

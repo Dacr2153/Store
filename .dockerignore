@@ -1,0 +1,38 @@
+# Go binaries
+*.exe
+*.dll
+*.so
+*.dylib
+main
+store
+
+# Go build cache
+tmp/
+*.test
+*.out
+
+# Env files (never send secrets to build context)
+.env
+.env.local
+
+# Node (frontend has its own build stage)
+FrontEnd/node_modules/
+FrontEnd/dist/
+FrontEnd/.env.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.suo
+
+# Git
+.git/
+.gitignore
+
+# Docs / planning
+PromptMaestro*.md
+README.md
+
+# Air (hot reload dev tool)
+.air.toml

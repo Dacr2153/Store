@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FinalStore — Despliegue completo (frontend + backend + base de datos)
+#
+# Uso:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Abre tu navegador en:  http://localhost   (o http://<IP-de-tu-máquina>)
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  # ── Base de datos ──────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB:       ${POSTGRES_DB:-finalstore}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ── Backend Go ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-finalstore}?sslmode=disable
+      PORT:          ":5050"
+      JWT_SECRET:    ${JWT_SECRET:-cambia-esto-en-produccion-usa-algo-largo}
+      ALLOWED_ORIGINS: "*"
+      # Opcionales — si no se configuran, el sistema funciona con fallbacks
+      STRIPE_SECRET_KEY:    ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      GOOGLE_CLIENT_ID:     ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL:  ${GOOGLE_REDIRECT_URL:-}
+      OLLAMA_HOST:          ${OLLAMA_HOST:-}
+      SMTP_HOST:            ${SMTP_HOST:-}
+      SMTP_PORT:            ${SMTP_PORT:-}
+      SMTP_USER:            ${SMTP_USER:-}
+      SMTP_PASS:            ${SMTP_PASS:-}
+    volumes:
+      # Named volume: Docker manages permissions, works on any OS.
+      # Images are persisted across restarts. Access via: docker cp finalstore_api:/app/uploads .
+      - uploads_data:/app/uploads
+    # El backend NO está expuesto externamente — solo nginx habla con él
+    restart: unless-stopped
+
+  # ── Frontend (nginx — sirve SPA y hace proxy al backend) ───────────────────
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+      target: production
+      # VITE_API_URL=/api → el frontend llama a /api/products, /api/login, etc.
+      # nginx quita el prefijo /api y reenvía al backend Go
+      # No necesitas cambiar esto salvo que uses un dominio propio
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      - api
+    ports:
+      - "${APP_PORT:-80}:80"
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  uploads_data:
