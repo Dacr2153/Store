@@ -1,0 +1,446 @@
+openapi: 3.1.0
+info:
+  title: FinalStore API
+  description: |
+    REST API for the FinalStore e-commerce platform.
+    All authenticated endpoints expect `Authorization: Bearer <jwt>`.
+  version: 0.1.0
+  contact:
+    name: FinalStore
+servers:
+  - url: http://localhost:5050
+    description: Local development
+tags:
+  - name: health
+  - name: auth
+  - name: users
+  - name: products
+  - name: cart
+  - name: orders
+  - name: roles
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+      required: [error]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        created_at: { type: string, format: date-time }
+    SignupRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string }
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price: { type: number, format: float }
+        stock: { type: integer, minimum: 0 }
+        description: { type: string }
+        user_id: { type: string }
+        created_at: { type: string, format: date-time }
+    ProductInput:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string }
+        price: { type: number, format: float }
+        stock: { type: integer, minimum: 0 }
+        description: { type: string }
+    CartItemInput:
+      type: object
+      required: [quantity]
+      properties:
+        quantity: { type: integer, minimum: 1 }
+    CartItem:
+      type: object
+      properties:
+        product_id: { type: string }
+        quantity: { type: integer }
+        unit_price: { type: number, format: float }
+    Order:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string }
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        total: { type: number, format: float }
+        notes: { type: string }
+        created_at: { type: string, format: date-time }
+    Role:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /signup:
+    post:
+      tags: [auth]
+      security: []
+      summary: Create regular user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignupRequest' }
+      responses:
+        '200': { description: created }
+        '400': { description: invalid input, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /signupBusiness:
+    post:
+      tags: [auth]
+      security: []
+      summary: Create business account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/SignupRequest'
+                - type: object
+                  properties:
+                    company_name: { type: string }
+                    company_id: { type: string }
+      responses:
+        '200': { description: created }
+        '400': { description: invalid input }
+
+  /login:
+    post:
+      tags: [auth]
+      security: []
+      summary: Authenticate and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '401': { description: invalid credentials }
+
+  /me:
+    get:
+      tags: [users]
+      summary: Get current authenticated user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { description: unauthorized }
+    put:
+      tags: [users]
+      summary: Update profile of current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200': { description: updated }
+
+  /products:
+    get:
+      tags: [products]
+      security: []
+      summary: List products with optional filters
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+    post:
+      tags: [products]
+      summary: Create a product (admin/business)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductInput' }
+      responses:
+        '200':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+
+  /products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      tags: [products]
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404': { description: not found }
+    put:
+      tags: [products]
+      summary: Update product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductInput' }
+      responses:
+        '200': { description: updated }
+    delete:
+      tags: [products]
+      responses:
+        '204': { description: deleted }
+
+  /image/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    post:
+      tags: [products]
+      summary: Upload an image and link it to a product
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200': { description: uploaded }
+
+  /addItem/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+        description: Product id
+    post:
+      tags: [cart]
+      summary: Add product to current user's cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CartItemInput' }
+      responses:
+        '200': { description: OK }
+        '400': { description: invalid quantity }
+
+  /wishcar:
+    get:
+      tags: [cart]
+      summary: List current user's cart items
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CartItem' }
+
+  /wishcar/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+        description: Product id
+    delete:
+      tags: [cart]
+      summary: Remove product from cart
+      responses:
+        '204': { description: removed }
+
+  /orders:
+    get:
+      tags: [orders]
+      summary: List orders of current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Order' }
+    post:
+      tags: [orders]
+      summary: Create order from current cart
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes: { type: string }
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+
+  /orders/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [orders]
+      summary: Get order detail
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+
+  /createRole:
+    post:
+      tags: [roles]
+      summary: Create a role (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        '200': { description: created }
+
+  /listRoles:
+    get:
+      tags: [roles]
+      summary: List all roles (admin)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Role' }
+
+  /getRole:
+    get:
+      tags: [roles]
+      summary: Get role by name (?name=...)
+      parameters:
+        - in: query
+          name: name
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /setRole:
+    post:
+      tags: [roles]
+      summary: Assign role to user (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, role_id]
+              properties:
+                user_id: { type: string }
+                role_id: { type: integer }
+      responses:
+        '200': { description: assigned }
+
+  /getUserRoles:
+    get:
+      tags: [roles]
+      summary: List roles of current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Role' }
